@@ -96,7 +96,7 @@ public class Zip {
      - notes: Supports implicit progress composition
      */
     
-    public class func unzipFile(_ zipFilePath: URL, destination: URL, overwrite: Bool, password: String?, progress: ((_ progress: Double) -> ())? = nil, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
+    public class func unzipFile(_ zipFilePath: URL, destination: URL, overwrite: Bool, password: String?, progress: ((_ progress: Double) throws -> ())? = nil, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
         
         // File manager
         let fileManager = FileManager.default
@@ -248,7 +248,7 @@ public class Zip {
             
             // Update progress handler
             if let progressHandler = progress{
-                progressHandler((currentPosition/totalSize))
+                try progressHandler((currentPosition/totalSize))
             }
             
             if let fileHandler = fileOutputHandler,
@@ -263,7 +263,7 @@ public class Zip {
         
         // Completed. Update progress handler.
         if let progressHandler = progress{
-            progressHandler(1.0)
+            try progressHandler(1.0)
         }
         
         progressTracker.completedUnitCount = Int64(totalSize)
@@ -404,7 +404,7 @@ public class Zip {
      
      - notes: Supports implicit progress composition
      */
-    public class func zipData(archiveFiles:[ArchiveFile], zipFilePath:URL, password: String?, compression: ZipCompression = .DefaultCompression, progress: ((_ progress: Double) -> ())?) throws {
+    public class func zipData(archiveFiles:[ArchiveFile], zipFilePath:URL, password: String?, compression: ZipCompression = .DefaultCompression, progress: ((_ progress: Double) throws -> ())?) throws {
         
         let destinationPath = zipFilePath.path
 
@@ -471,7 +471,7 @@ public class Zip {
             currentPosition += archiveFile.data.length
 
             if let progressHandler = progress{
-                progressHandler((Double(currentPosition/totalSize)))
+                try progressHandler((Double(currentPosition/totalSize)))
             }
 
             progressTracker.completedUnitCount = Int64(currentPosition)
@@ -481,7 +481,7 @@ public class Zip {
 
         // Completed. Update progress handler.
         if let progressHandler = progress{
-            progressHandler(1.0)
+            try progressHandler(1.0)
         }
 
         progressTracker.completedUnitCount = Int64(totalSize)
