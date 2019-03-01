@@ -286,7 +286,7 @@ public class Zip {
      
      - notes: Supports implicit progress composition
      */
-    public class func zipFiles(paths: [URL], zipFilePath: URL, password: String?, compression: ZipCompression = .DefaultCompression, progress: ((_ progress: Double) -> ())?) throws {
+    public class func zipFiles(paths: [URL], basePath: String? = nil, zipFilePath: URL, password: String?, compression: ZipCompression = .DefaultCompression, progress: ((_ progress: Double) throws -> ())?) throws {
         
         // File manager
         let fileManager = FileManager.default
@@ -332,7 +332,10 @@ public class Zip {
                 if input == nil {
                     throw ZipError.zipFail
                 }
-                let fileName = path.fileName
+                var fileName = path.fileName
+                if let prefix = basePath, let suffix = fileName {
+                    fileName = "\(prefix)/\(suffix)"
+                }
                 var zipInfo: zip_fileinfo = zip_fileinfo(tmz_date: tm_zip(tm_sec: 0, tm_min: 0, tm_hour: 0, tm_mday: 0, tm_mon: 0, tm_year: 0), dosDate: 0, internal_fa: 0, external_fa: 0)
                 do {
                     let fileAttributes = try fileManager.attributesOfItem(atPath: filePath)
@@ -368,7 +371,7 @@ public class Zip {
                 
                 // Update progress handler
                 if let progressHandler = progress{
-                    progressHandler((currentPosition/totalSize))
+                    try progressHandler((currentPosition/totalSize))
                 }
                 
                 progressTracker.completedUnitCount = Int64(currentPosition)
@@ -382,12 +385,12 @@ public class Zip {
         
         // Completed. Update progress handler.
         if let progressHandler = progress{
-            progressHandler(1.0)
+            try progressHandler(1.0)
         }
         
         progressTracker.completedUnitCount = Int64(totalSize)
     }
-
+    
     /**
      Zip data in memory.
      
